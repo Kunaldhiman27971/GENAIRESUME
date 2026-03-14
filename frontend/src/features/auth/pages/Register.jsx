@@ -1,31 +1,55 @@
-import React, { use } from "react";
-import { useNavigate ,Link}from "react-router";
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router";
+import {useAuth} from "../hooks/useauth"
+
 
 const Register = () => {
-  const navigate=useNavigate();
+  const navigate = useNavigate();
 
-  const handleSubmit =(e)=>{
+  const [username, setusername]=useState("")
+  const [email, setemail]=useState("")
+  const [password, setpassword]=useState("")
+  const {loading, handleregister}=useAuth()
+
+  const handleSubmit = async(e) => {
     e.preventDefault();
+    await handleregister({username,email,password})
+    navigate("/")
   }
+
+  if (loading){
+    return (
+    <main> <div>Loading...</div></main>)
+  }
+  
   return (
     <main>
       <div className="form-container">
         <h1>Register</h1>
-        <form onSubmit={handleSubmit}> 
+        <form onSubmit={handleSubmit}>
+
           <div className="input-group">
             <label htmlFor="username">Username</label>
-            <input type="text" id='username' placeholder='Enter username'/>
+            <input
+            onChange={(e)=>{setusername(e.target.value)}}
+            type="text" id='username' placeholder='Enter username' />
           </div>
-    <div className="input-group">
+
+          <div className="input-group">
             <label htmlFor="email">Email</label>
-            <input type="email" id='email' placeholder='Enter email address'/>
+            <input 
+            onChange={(e)=>{setemail(e.target.value)}}
+            type="email" id='email' placeholder='Enter email address' />
           </div>
 
 
           <div className="input-group">
             <label htmlFor="password">Password</label>
-            <input type="password" id='password' placeholder='Enter password'/>
+            <input 
+            onChange={(e)=>{setpassword(e.target.value)}}
+            type="password" id='password' placeholder='Enter password' />
           </div>
+
           <button className='button primary-button' >Register</button>
         </form>
         <p>Already have an account? <Link to="/login">Login</Link></p>
