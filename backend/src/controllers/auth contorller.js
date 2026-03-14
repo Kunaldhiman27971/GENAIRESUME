@@ -11,7 +11,9 @@ const blackListModel = require('../models/blacklist.model');
  */
 async function registerUserController(req, res) {
     try {
-        const { username, email, password } = req.body;
+        const username = req.body?.username?.trim();
+        const email = req.body?.email?.trim()?.toLowerCase();
+        const password = req.body?.password;
 
         if (!username || !email || !password) {
             return res.status(400).json({
@@ -77,7 +79,8 @@ async function registerUserController(req, res) {
 
 async function loginUserController(req, res) {
     try {
-        const { email, password } = req.body;
+        const email = req.body?.email?.trim()?.toLowerCase();
+        const password = req.body?.password;
 
         if (!email || !password) {
             return res.status(400).json({
@@ -141,13 +144,13 @@ async function loginUserController(req, res) {
  */
 
 async function logoutUserController(req, res) {
-    const token=req.cookies.token;
-    if(token){
-        await blackListModel.create({token});
+    const token = req.cookies.token;
+    if (token) {
+        await blackListModel.create({ token });
     }
     res.clearCookie('token')
     res.status(200).json({
-        message:"User logged out successfully"
+        message: "User logged out successfully"
     })
 }
 
@@ -158,14 +161,14 @@ async function logoutUserController(req, res) {
  * @access Private
  */
 
-async function getMeController(req, res){
-    const user=await userModel.findById(req.user.id)
+async function getMeController(req, res) {
+    const user = await userModel.findById(req.user.id)
     res.status(200).json({
-        message:"User details fetched successfully",
-        user:{
+        message: "User details fetched successfully",
+        user: {
             id: user._id,
             username: user.username,
-            email:user.email
+            email: user.email
         }
     })
 }

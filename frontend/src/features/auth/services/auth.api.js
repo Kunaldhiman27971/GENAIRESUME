@@ -16,7 +16,8 @@ export async function registerUser({ username, email, password }) {
         return response.data;
     }
     catch (error) {
-        console.log(error);
+        const message = error?.response?.data?.message || 'Registration failed';
+        throw new Error(message);
     }
 }
 // Function to login a user with email and password
@@ -29,7 +30,8 @@ export async function loginUser({ email, password }) {
         return response.data;
     }
     catch (error) {
-        console.log(error);
+        const message = error?.response?.data?.message || 'Login failed';
+        throw new Error(message);
     }
 }
 // Function to logout a user by blacklisting the token
@@ -39,7 +41,8 @@ export async function logoutUser() {
         return response.data;
     }
     catch (error) {
-        console.log(error);
+        const message = error?.response?.data?.message || 'Logout failed';
+        throw new Error(message);
     }
 }
 // Function to get the details of the logged in user
@@ -49,7 +52,8 @@ export async function getMe() {
         return response.data;
     }
     catch (error) {
-        console.log(error);
+        const message = error?.response?.data?.message || 'Failed to fetch user';
+        throw new Error(message);
     }
 }
 
