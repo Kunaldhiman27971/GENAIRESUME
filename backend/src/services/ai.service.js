@@ -31,7 +31,8 @@ const interviewReportSchema = zod.object({
         day: zod.number().describe("The day number of the preparation plan"),
         focus: zod.string().describe("The focus of the preparation for that day"),
         tasks: zod.array(zod.string()).describe("The tasks to be completed on that day for preparation")
-    })).describe("A preparation plan for the candidate to follow, with daily focus areas and tasks to complete")
+    })).describe("A preparation plan for the candidate to follow, with daily focus areas and tasks to complete"),
+    title: zod.string().describe("The title of the interview report, which can be used as a reference for the candidate"),
 
 })
 

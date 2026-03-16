@@ -1,7 +1,54 @@
-import React from "react";
+import React, { useState, useRef } from "react";
 import "../style/Home.scss"
+import { useInterview } from "../hook/useinterview";
+import { useNavigate } from "react-router";
 
 const Home = () => {
+    const { loading, generateReport } = useInterview()
+    const [selfDescription, setSelfDescription] = useState("")
+    const [jobDescription, setJobDescription] = useState("")
+    const resumeFileRef = useRef()
+
+    const navigate = useNavigate()
+
+    const handleGenerateReport = async () => {
+        const resumeFile = resumeFileRef.current.files[0]
+        const data = await generateReport({ selfDescription, jobDescription, resumeFile })
+        if (data?._id) {
+            navigate(`/interview/${data._id}`)
+        }
+    }
+
+    if (loading) {
+        return (
+            <main className="loading-overlay" aria-live="polite" aria-busy="true">
+                <section className="loading-panel">
+                    <div className="loading-ring-wrap" aria-hidden="true">
+                        <div className="spinner"></div>
+                        <div className="spinner-core"></div>
+                    </div>
+
+                    <p className="loading-kicker">AI Interview Engine</p>
+                    <h1>Building Your Personalized Interview Strategy</h1>
+                    <p className="loading-copy">
+                        We are analyzing your job requirements, profile strengths, and skill gaps to create
+                        focused questions and a preparation roadmap.
+                    </p>
+
+                    <ul className="loading-steps" aria-label="Report generation progress">
+                        <li>Parsing resume and profile context</li>
+                        <li>Generating technical and behavioral questions</li>
+                        <li>Calculating match score and skill gaps</li>
+                        <li>Preparing your day-by-day roadmap</li>
+                    </ul>
+
+                    <p className="loading-footnote">Usually takes around 20-30 seconds. Please keep this tab open.</p>
+                </section>
+            </main>
+        )
+    }
+
+
     return (
         <main className="home">
             <section className="plan-hero">
@@ -26,6 +73,7 @@ const Home = () => {
                             Job Description
                         </label>
                         <textarea
+                            onChange={(e) => { setJobDescription(e.target.value) }}
                             name="jobDescription"
                             id="jobDescription"
                             maxLength={5000}
@@ -51,7 +99,7 @@ const Home = () => {
                                 <span>Click to upload or drag &amp; drop</span>
                                 <small>PDF or DOCX (Max 5MB)</small>
                             </label>
-                            <input hidden type="file" name="resume" id="resume" accept=".pdf,.doc,.docx" />
+                            <input ref={resumeFileRef} hidden type="file" name="resume" id="resume" accept=".pdf,.doc,.docx" />
                         </div>
 
                         <div className="divider">OR</div>
@@ -61,6 +109,7 @@ const Home = () => {
                                 Quick Self-Description
                             </label>
                             <textarea
+                                onChange={(e) => { setSelfDescription(e.target.value) }}
                                 name="selfDescription"
                                 id="selfDescription"
                                 placeholder="Briefly describe your experience, key skills, and years of experience if you don't have a resume handy..."
@@ -76,7 +125,9 @@ const Home = () => {
 
                 <div className="card-footer">
                     <p>AI-Powered Strategy Generation - Approx 30s</p>
-                    <button className="button primary-button">Generate My Interview Strategy</button>
+                    <button
+                        onClick={handleGenerateReport}
+                        className="button primary-button">Generate My Interview Strategy</button>
                 </div>
             </section>
 
