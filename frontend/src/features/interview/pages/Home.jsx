@@ -1,25 +1,32 @@
-import React, { useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "../style/Home.scss"
 import { useInterview } from "../hook/useinterview";
 import { useNavigate } from "react-router";
 
 const Home = () => {
-    const { loading, generateReport } = useInterview()
+    const { loading, generateReport, reports, getAllReports } = useInterview()
     const [selfDescription, setSelfDescription] = useState("")
     const [jobDescription, setJobDescription] = useState("")
+    const [isGenerating, setIsGenerating] = useState(false)
     const resumeFileRef = useRef()
 
     const navigate = useNavigate()
 
+    useEffect(() => {
+        getAllReports()
+    }, [getAllReports])
+
     const handleGenerateReport = async () => {
+        setIsGenerating(true)
         const resumeFile = resumeFileRef.current.files[0]
         const data = await generateReport({ selfDescription, jobDescription, resumeFile })
         if (data?._id) {
             navigate(`/interview/${data._id}`)
         }
+        setIsGenerating(false)
     }
 
-    if (loading) {
+    if (loading && isGenerating) {
         return (
             <main className="loading-overlay" aria-live="polite" aria-busy="true">
                 <section className="loading-panel">
@@ -47,6 +54,8 @@ const Home = () => {
             </main>
         )
     }
+
+    const recentReports = Array.isArray(reports) ? reports.slice(0, 6) : []
 
 
     return (
@@ -129,6 +138,32 @@ const Home = () => {
                         onClick={handleGenerateReport}
                         className="button primary-button">Generate My Interview Strategy</button>
                 </div>
+            </section>
+
+            <section className="recent-reports" aria-label="recent interview reports">
+                <h2>My Recent Interview Plans</h2>
+
+                {recentReports.length ? (
+                    <ul className="reports-list">
+                        {recentReports.map((reportItem) => (
+                            <li key={reportItem._id}>
+                                <button
+                                    type="button"
+                                    className="report-card"
+                                    onClick={() => navigate(`/interview/${reportItem._id}`)}
+                                >
+                                    <h3>{reportItem.title || "Interview Strategy Report"}</h3>
+                                    <p className="report-date">
+                                        Generated on {new Date(reportItem.createdAt).toLocaleDateString()}
+                                    </p>
+                                    <p className="report-score">Match Score: {reportItem.matchScore ?? 0}%</p>
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p className="reports-empty">No reports yet. Generate your first interview plan above.</p>
+                )}
             </section>
 
             <nav className="home-links" aria-label="footer links">
