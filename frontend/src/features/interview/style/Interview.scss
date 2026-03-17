@@ -53,6 +53,11 @@
     padding: 0.9rem;
 }
 
+.interview-left-panel {
+    display: flex;
+    flex-direction: column;
+}
+
 .interview-left-panel,
 .interview-main-panel {
     border-right: 1px solid var(--line-strong);
@@ -73,6 +78,11 @@
     display: flex;
     flex-direction: column;
     gap: 0.45rem;
+}
+
+.resume-download-btn {
+    margin-top: auto;
+    width: 100%;
 }
 
 .section-link {
@@ -491,5 +501,9 @@
 
     .roadmap-timeline {
         max-height: none;
+    }
+
+    .resume-download-btn {
+        margin-top: 0.8rem;
     }
 }

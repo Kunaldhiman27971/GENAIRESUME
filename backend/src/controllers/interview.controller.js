@@ -1,7 +1,6 @@
 const pdfParse = require('pdf-parse');
-const genrateInterviewReport = require('../services/ai.service')
+const { generateInterviewreport, generateResumePDF } = require('../services/ai.service')
 const interviewReportModel = require('../models/interviewReport.model');
-const { PDFParse } = require('pdf-parse');
 
 function buildFallbackPreparationPlan(aiReport = {}) {
     const technical = Array.isArray(aiReport.technicalQuestions) ? aiReport.technicalQuestions : [];
@@ -52,7 +51,7 @@ async function generateInterviewReportController(req, res) {
     const { jobDescription, selfDescription } = req.body
 
 
-    const interviewReportbyAI = await genrateInterviewReport({
+    const interviewReportbyAI = await generateInterviewreport({
         jobDescription,
         resume: resumeContent.text,
         selfDescription
@@ -106,10 +105,47 @@ async function generateInterviewReportByIdController(req, res) {
  * @description Get all interview reports of user.
  */
 async function getALLinterview(req, res) {
-    const interviewReports = await interviewReportModel.find({ user: req.user._id }).sort({ createdAt: -1 }).select("-resume -selfDescription -jobDescription -__v -technicalQuestions -behavioralQuestions -skillGaps -preperationPlan")
+    const interviewReports = await interviewReportModel.find({ user: req.user._id }).sort({ createdAt: -1 }).select("-candidateResume -selfDescription -jobDescription -__v -technicalQuestions -behavioralQuestions -skillGaps -preperationPlan")
     res.status(200).json({
         message: "Interview reports fetched successfully",
         interviewReports
     })
 }
-module.exports = { generateInterviewReportController, generateInterviewReportByIdController, getALLinterview }
+
+
+
+/**
+ * @description Generate PDF version of resume using AI based on resume content, self description and job description.
+ * 
+ */
+
+async function generateResumePDFController(req, res) {
+    const { interviewReportId } = req.params
+    const interviewreport = await interviewReportModel.findOne({
+        _id: interviewReportId,
+        user: req.user._id
+    })
+
+    if (!interviewreport) {
+        return res.status(404).json({
+            message: "Interview report not found"
+        })
+    }
+
+    const { candidateResume, selfDescription, jobDescription } = interviewreport
+
+    const pdfbuffer = await generateResumePDF({
+        resume: candidateResume,
+        selfDescription,
+        jobDescription
+    })
+
+    res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="resume_${interviewReportId}.pdf"`
+
+    });
+    res.send(pdfbuffer)
+}
+
+module.exports = { generateInterviewReportController, generateInterviewReportByIdController, getALLinterview, generateResumePDFController }
