@@ -4,10 +4,12 @@ import { useInterview } from "../hook/useinterview";
 import { useNavigate } from "react-router";
 
 const Home = () => {
-    const { loading, generateReport, reports, getAllReports } = useInterview()
+    const { loading, generateReport, reports, getAllReports, removeReport } = useInterview()
     const [selfDescription, setSelfDescription] = useState("")
     const [jobDescription, setJobDescription] = useState("")
     const [isGenerating, setIsGenerating] = useState(false)
+    const [deletingId, setDeletingId] = useState(null)
+    const [generateError, setGenerateError] = useState("")
     const resumeFileRef = useRef()
 
     const navigate = useNavigate()
@@ -17,11 +19,16 @@ const Home = () => {
     }, [getAllReports])
 
     const handleGenerateReport = async () => {
+        setGenerateError("")
         setIsGenerating(true)
         const resumeFile = resumeFileRef.current.files[0]
-        const data = await generateReport({ selfDescription, jobDescription, resumeFile })
-        if (data?._id) {
-            navigate(`/interview/${data._id}`)
+        try {
+            const data = await generateReport({ selfDescription, jobDescription, resumeFile })
+            if (data?._id) {
+                navigate(`/interview/${data._id}`)
+            }
+        } catch (error) {
+            setGenerateError(error?.message || "Failed to generate interview report")
         }
         setIsGenerating(false)
     }
@@ -56,6 +63,19 @@ const Home = () => {
     }
 
     const recentReports = Array.isArray(reports) ? reports.slice(0, 6) : []
+
+    const handleDeleteReport = async (event, reportId) => {
+        event.stopPropagation()
+
+        const shouldDelete = window.confirm("Delete this report permanently?")
+        if (!shouldDelete) {
+            return
+        }
+
+        setDeletingId(reportId)
+        await removeReport(reportId)
+        setDeletingId(null)
+    }
 
 
     return (
@@ -132,6 +152,8 @@ const Home = () => {
                     </div>
                 </div>
 
+                {generateError && <p className="reports-empty">{generateError}</p>}
+
                 <div className="card-footer">
                     <p>AI-Powered Strategy Generation - Approx 30s</p>
                     <button
@@ -147,6 +169,17 @@ const Home = () => {
                     <ul className="reports-list">
                         {recentReports.map((reportItem) => (
                             <li key={reportItem._id}>
+                                <div className="report-card-top-row">
+                                    <span className="report-card-label">Saved report</span>
+                                    <button
+                                        type="button"
+                                        className="report-delete-btn"
+                                        onClick={(event) => handleDeleteReport(event, reportItem._id)}
+                                        disabled={deletingId === reportItem._id}
+                                    >
+                                        {deletingId === reportItem._id ? "Deleting..." : "Delete"}
+                                    </button>
+                                </div>
                                 <button
                                     type="button"
                                     className="report-card"

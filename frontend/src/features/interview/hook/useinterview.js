@@ -1,4 +1,4 @@
-import { getAllInterviewReports, getInterviewReportById, generateInterviewReport, generateResumePDF } from '../services/interview.api'
+import { getAllInterviewReports, getInterviewReportById, generateInterviewReport, generateResumePDF, deleteInterviewReport } from '../services/interview.api'
 import { useCallback, useContext } from 'react'
 import { InterviewContext } from '../interview.context'
 
@@ -7,7 +7,18 @@ export const useInterview = () => {
     if (!context) {
         throw new Error("useInterview must be used within an InterviewProvider")
     }
-    const { loading, setLoading, report, setReport, reports, setReports } = context
+    const {
+        loading,
+        setLoading,
+        report,
+        setReport,
+        reports,
+        setReports,
+        downloadingResume,
+        setDownloadingResume,
+        resumePreviewUrl,
+        setResumePreviewUrl
+    } = context
 
     const generateReport = useCallback(async ({ selfDescription, jobDescription, resumeFile }) => {
         setLoading(true)
@@ -17,6 +28,7 @@ export const useInterview = () => {
             setReport(data?.interviewReport || null)
         } catch (error) {
             console.error("Error generating interview report:", error)
+            throw error
         } finally {
             setLoading(false)
         }
@@ -62,30 +74,58 @@ export const useInterview = () => {
 
         let data = null
         try {
+            setDownloadingResume(true)
             data = await generateResumePDF(interviewReportId)
-            const url = window.URL.createObjectURL(new Blob([data], { type: 'application/pdf' }));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `resume_${interviewReportId}.pdf`);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(url);
+            const blob = new Blob([data], { type: 'application/pdf' })
+            const url = window.URL.createObjectURL(blob)
+
+            if (resumePreviewUrl) {
+                window.URL.revokeObjectURL(resumePreviewUrl)
+            }
+            setResumePreviewUrl(url)
+
+            const link = document.createElement('a')
+            link.href = url
+            link.setAttribute('download', `resume_${interviewReportId}.pdf`)
+            document.body.appendChild(link)
+            link.click()
+            link.remove()
         }
         catch (error) {
             console.error("Error generating resume PDF:", error)
+        } finally {
+            setDownloadingResume(false)
         }
 
         return data
     }
 
+    const removeReport = useCallback(async (interviewId) => {
+        if (!interviewId) {
+            return false
+        }
+
+        try {
+            await deleteInterviewReport(interviewId)
+            setReports((prev) => (Array.isArray(prev) ? prev.filter((item) => item?._id !== interviewId) : []))
+            setReport((prev) => (prev?._id === interviewId ? null : prev))
+            return true
+        } catch (error) {
+            console.error("Error deleting interview report:", error)
+            return false
+        }
+    }, [setReport, setReports])
+
     return {
         loading,
         report,
         reports,
+        downloadingResume,
+        resumePreviewUrl,
         generateReport,
         getReportById,
         getAllReports,
-        getResumePdf
+        getResumePdf,
+        removeReport
     }
 }

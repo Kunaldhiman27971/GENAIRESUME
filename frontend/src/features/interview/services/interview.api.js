@@ -9,16 +9,24 @@ const api = axios.create({
  * @description This function generates an interview report by sending a POST request to the backend API. It takes in three parameters: selfDescription, jobDescription, and resumeFile. The function creates a FormData object to hold these parameters and sends it to the API endpoint "/api/interview/". The response from the API is returned as data.
  */
 export const generateInterviewReport = async ({ selfDescription, jobDescription, resumeFile }) => {
-    const formData = new FormData();
-    formData.append('selfDescription', selfDescription);
-    formData.append('jobDescription', jobDescription);
-    formData.append('resume', resumeFile);
-    const response = await api.post("/", formData, {
-        headers: {
-            'Content-Type': 'multipart/form-data'
+    try {
+        const formData = new FormData();
+        formData.append('selfDescription', selfDescription);
+        formData.append('jobDescription', jobDescription);
+        if (resumeFile) {
+            formData.append('resume', resumeFile);
         }
-    })
-    return response.data
+
+        const response = await api.post("/", formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        })
+        return response.data
+    } catch (error) {
+        const message = error?.response?.data?.message || 'Failed to generate interview report';
+        throw new Error(message);
+    }
 }
 
 
@@ -48,5 +56,13 @@ export const generateResumePDF = async (interviewReportId) => {
     const response = await api.post(`/resume/pdf/${interviewReportId}`, null, {
         responseType: 'blob'
     })
+    return response.data
+}
+
+/**
+ * @description delete interview report by id
+ */
+export const deleteInterviewReport = async (interviewId) => {
+    const response = await api.delete(`/${interviewId}`)
     return response.data
 }
