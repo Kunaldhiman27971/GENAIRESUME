@@ -6,7 +6,7 @@
     "build": "echo \"Error: no test specified\" && exit 1",
     "dev": "npx nodemon server.js",
     "start": "node server.js",
-    "postinstall": "npx puppeteer browsers install chrome"
+    "postinstall": "node -e \"require('fs').mkdirSync('.puppeteer-cache',{recursive:true})\" && npx puppeteer browsers install chrome --path ./.puppeteer-cache"
   },
   "keywords": [],
   "author": "",
