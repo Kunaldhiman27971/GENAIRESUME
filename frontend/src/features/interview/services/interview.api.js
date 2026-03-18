@@ -53,10 +53,29 @@ export const getAllInterviewReports = async () => {
  */
 
 export const generateResumePDF = async (interviewReportId) => {
-    const response = await api.post(`/resume/pdf/${interviewReportId}`, null, {
-        responseType: 'blob'
-    })
-    return response.data
+    try {
+        const response = await api.post(`/resume/pdf/${interviewReportId}`, null, {
+            responseType: 'blob'
+        })
+        return response.data
+    } catch (error) {
+        let message = 'Failed to generate resume PDF'
+
+        const responseData = error?.response?.data
+        if (responseData instanceof Blob) {
+            const text = await responseData.text()
+            try {
+                const parsed = JSON.parse(text)
+                message = parsed?.message || message
+            } catch {
+                message = text || message
+            }
+        } else if (responseData?.message) {
+            message = responseData.message
+        }
+
+        throw new Error(message)
+    }
 }
 
 /**

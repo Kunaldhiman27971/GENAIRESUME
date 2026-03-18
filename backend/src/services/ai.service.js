@@ -105,12 +105,30 @@ Return ONLY valid JSON with this exact shape:
 
 
 async function generatePdfFromHtml(htmlContent) {
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-    const pdfBuffer = await page.pdf({ format: 'A4', margin: { top: '15mm', bottom: '15mm', left: '10mm', right: '10mm' } });
-    await browser.close();
-    return pdfBuffer;
+    const isHostedRuntime = Boolean(process.env.RENDER) || process.env.NODE_ENV === 'production';
+    const launchOptions = {
+        headless: true,
+    };
+
+    if (isHostedRuntime) {
+        launchOptions.args = ['--no-sandbox', '--disable-setuid-sandbox'];
+    }
+
+    let browser;
+    try {
+        browser = await puppeteer.launch(launchOptions);
+        const page = await browser.newPage();
+        await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+        const pdfBuffer = await page.pdf({
+            format: 'A4',
+            margin: { top: '15mm', bottom: '15mm', left: '10mm', right: '10mm' }
+        });
+        return pdfBuffer;
+    } finally {
+        if (browser) {
+            await browser.close();
+        }
+    }
 }
 
 async function generateResumePDF({ resume, selfDescription, jobDescription }) {

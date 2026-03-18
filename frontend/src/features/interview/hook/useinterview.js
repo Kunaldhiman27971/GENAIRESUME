@@ -93,6 +93,7 @@ export const useInterview = () => {
         }
         catch (error) {
             console.error("Error generating resume PDF:", error)
+            window.alert(error?.message || "Failed to generate resume PDF")
         } finally {
             setDownloadingResume(false)
         }
