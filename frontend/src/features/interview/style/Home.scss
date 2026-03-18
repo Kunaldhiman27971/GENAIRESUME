@@ -290,6 +290,27 @@
         animation: pulseUp 1.8s ease-in-out infinite;
     }
 
+    .resume-upload-status {
+        margin: 0;
+        border-radius: 0.52rem;
+        border: 1px solid;
+        padding: 0.55rem 0.7rem;
+        font-size: 0.88rem;
+        line-height: 1.35;
+
+        &.success {
+            background: rgba(20, 79, 57, 0.42);
+            border-color: rgba(71, 214, 151, 0.42);
+            color: #a4efcf;
+        }
+
+        &.error {
+            background: rgba(103, 33, 54, 0.38);
+            border-color: rgba(255, 126, 162, 0.4);
+            color: #ffc4d9;
+        }
+    }
+
     .divider {
         margin: 0.15rem 0;
         display: flex;

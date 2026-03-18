@@ -10,6 +10,7 @@ const Home = () => {
     const [isGenerating, setIsGenerating] = useState(false)
     const [deletingId, setDeletingId] = useState(null)
     const [generateError, setGenerateError] = useState("")
+    const [resumeUploadStatus, setResumeUploadStatus] = useState({ type: "", message: "" })
     const resumeFileRef = useRef()
 
     const navigate = useNavigate()
@@ -31,6 +32,24 @@ const Home = () => {
             setGenerateError(error?.message || "Failed to generate interview report")
         }
         setIsGenerating(false)
+    }
+
+    const handleResumeChange = (event) => {
+        const selectedFile = event.target.files?.[0]
+
+        if (!selectedFile) {
+            setResumeUploadStatus({ type: "", message: "" })
+            return
+        }
+
+        const maxSize = 5 * 1024 * 1024
+        if (selectedFile.size > maxSize) {
+            event.target.value = ""
+            setResumeUploadStatus({ type: "error", message: "File is too large. Please upload a file up to 5MB." })
+            return
+        }
+
+        setResumeUploadStatus({ type: "success", message: `Resume upload successful: ${selectedFile.name}` })
     }
 
     if (loading && isGenerating) {
@@ -128,7 +147,24 @@ const Home = () => {
                                 <span>Click to upload or drag &amp; drop</span>
                                 <small>PDF or DOCX (Max 5MB)</small>
                             </label>
-                            <input ref={resumeFileRef} hidden type="file" name="resume" id="resume" accept=".pdf,.doc,.docx" />
+                            <input
+                                ref={resumeFileRef}
+                                hidden
+                                type="file"
+                                name="resume"
+                                id="resume"
+                                accept=".pdf,.doc,.docx"
+                                onChange={handleResumeChange}
+                            />
+                            {resumeUploadStatus.message && (
+                                <p
+                                    className={`resume-upload-status ${resumeUploadStatus.type}`}
+                                    role="status"
+                                    aria-live="polite"
+                                >
+                                    {resumeUploadStatus.message}
+                                </p>
+                            )}
                         </div>
 
                         <div className="divider">OR</div>
