@@ -6,8 +6,11 @@ const interviewRouter = require('./routes/interview.routes');
 const path = require('path');
 
 app.use(cors({
-    origin: 'http://localhost:5173', // Replace with your frontend URL
-    credentials: true, // Allow cookies to be sent
+  origin: [
+    "http://localhost:5173",
+    "https://airesume-ssbu.onrender.com"
+  ],
+  credentials: true,
 }));
 
 app.use(express.json());

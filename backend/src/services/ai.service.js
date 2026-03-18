@@ -104,31 +104,63 @@ Return ONLY valid JSON with this exact shape:
 }
 
 
+const fs = require("fs");
+const path = require("path");
+
+function getChromePath() {
+  const baseDir = path.join(process.cwd(), ".puppeteer-cache", "chrome");
+
+  if (!fs.existsSync(baseDir)) {
+    throw new Error(`Chrome cache directory not found: ${baseDir}`);
+  }
+
+  const folders = fs.readdirSync(baseDir);
+  const linuxFolder = folders.find((folder) => folder.startsWith("linux-"));
+
+  if (!linuxFolder) {
+    throw new Error(`No Linux Chrome folder found inside: ${baseDir}`);
+  }
+
+  return path.join(baseDir, linuxFolder, "chrome-linux64", "chrome");
+}
+
 async function generatePdfFromHtml(htmlContent) {
-    const isHostedRuntime = Boolean(process.env.RENDER) || process.env.NODE_ENV === 'production';
-    const launchOptions = {
-        headless: true,
-    };
+  const isHostedRuntime =
+    Boolean(process.env.RENDER) || process.env.NODE_ENV === "production";
 
-    if (isHostedRuntime) {
-        launchOptions.args = ['--no-sandbox', '--disable-setuid-sandbox'];
-    }
+  const launchOptions = {
+    headless: true,
+  };
 
-    let browser;
-    try {
-        browser = await puppeteer.launch(launchOptions);
-        const page = await browser.newPage();
-        await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-        const pdfBuffer = await page.pdf({
-            format: 'A4',
-            margin: { top: '15mm', bottom: '15mm', left: '10mm', right: '10mm' }
-        });
-        return pdfBuffer;
-    } finally {
-        if (browser) {
-            await browser.close();
-        }
+  if (isHostedRuntime) {
+    launchOptions.args = ["--no-sandbox", "--disable-setuid-sandbox"];
+    launchOptions.executablePath = getChromePath();
+  }
+
+  let browser;
+
+  try {
+    browser = await puppeteer.launch(launchOptions);
+    const page = await browser.newPage();
+
+    await page.setContent(htmlContent, { waitUntil: "networkidle0" });
+
+    const pdfBuffer = await page.pdf({
+      format: "A4",
+      margin: {
+        top: "15mm",
+        bottom: "15mm",
+        left: "10mm",
+        right: "10mm",
+      },
+    });
+
+    return pdfBuffer;
+  } finally {
+    if (browser) {
+      await browser.close();
     }
+  }
 }
 
 async function generateResumePDF({ resume, selfDescription, jobDescription }) {
