@@ -83,7 +83,7 @@ async function generateInterviewreport({ jobDescription, resume, selfDescription
     Resume: ${resume}
     Self Description: ${selfDescription}
         Job Description: ${jobDescription}
-
+Generate the technical questions more than 15 and behavioral questions more than 5 and road map for 10 days for preparation and skill gaps with severity level and match score between the candidate and the job description on a scale of 0 to 100.
 Return ONLY valid JSON with this exact shape:
 {
     "matchScore": number,
